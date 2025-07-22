@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <title>眼脑训练</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
   <style>
     /* 新增全局样式确保全屏 */
     html, body {
@@ -14,6 +14,7 @@
       margin: 0;
       overflow: hidden;
       position: fixed; /* 防止滚动条出现 */
+      z-index: 0;
     }
 
     #unity-canvas {
@@ -22,8 +23,9 @@
       left: 0;
       width: 100%;        /* 宽度撑满容器 */
       height: 100%;       /* 高度撑满容器 */
-      background: white; /* 设置背景颜色 */
-      z-index: 1;         /* 确保canvas在最底层 */
+      background: white;  /* 设置背景颜色 */
+      object-fit: contain; /* 保持比例完整显示内容 */
+      z-index: 1;
     }
 
     #splash-screen {
@@ -39,7 +41,7 @@
 
     #loadingText {
       margin-top: 20px; /* 加载文字距离LOGO的间距 */
-      font-size: 12px; /* 字体大小 */
+      font-size: 0px; /* 字体大小 */
       color: rgba(36, 111, 185, 255); /* 设置文字颜色为红色 */
       position:fixed;
       display: none;
@@ -52,20 +54,16 @@
 
     @keyframes scaleAni {
       0% {
-        opacity: 0;
         transform: scale(1);
       }
       50% {
-        opacity: 1;
         transform: scale(1.2);
       }
       100% {
-        opacity: 1;
         transform: scale(1);
       }
     }
   </style>
-
 </head>
 
 <body style="text-align: center; padding: 0; border: 0; margin: 0;">
@@ -80,7 +78,7 @@
 </div>
 
 <div id="loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0); display: none; align-items: center; justify-content: center; z-index: 9999;">
-  <img src="loading.png" alt="Loading..." style="max-width: 98px; height: 98px;transform: translate(0%,-0%);position:fixed;"/>
+  <img src="TemplateData/loading.png" alt="Loading..." style="max-width: 98px; height: 98px;transform: translate(0%,-0%);position:fixed;"/>
   <div class="spinner"></div>
 </div>
 
@@ -105,40 +103,26 @@
   // 初始化设置
   var canvas = document.getElementById('unity-canvas');
   var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-  console.log('innerWidth: ' + window.innerWidth + ' innerHeight: ' + window.innerHeight);
-
-  // 移动设备特殊处理
-  if (isMobile) {
-    console.log('移动设备检测: ' + navigator.userAgent);
-    canvas.style.width = "100%";
-    canvas.style.height = "100%";
-    canvas.style.position = "fixed";
-  }
-  else{
-    resizeCanvas();
-  }
+  // 屏幕适配
+  resizeCanvas();
 
   var _unityInstance;
   window.onresize = resizeCanvas;
-  window.onload = resizeCanvas;
+  //window.onload = resizeCanvas;
 
   function resizeCanvas() {
-    var w = window.innerWidth || document.documentElement.clientWidth;
-    var h = window.innerHeight || document.documentElement.clientHeight;
-    var splashdiv = document.getElementById('splash-screen');
-    splashdiv.style.width = "100%";
-    splashdiv.style.height = "100%";
-
+    
     console.log('resizeCanvas innerWidth: ' + window.innerWidth + ' innerHeight: ' + window.innerHeight);
     // 移动设备始终100%全屏
     if (isMobile) {
       canvas.style.width = "100%";
       canvas.style.height = "100%";
       canvas.style.position = "fixed";
+      canvas.style.margin = "0 auto";
     }
     // PC端保持比例
-    else {
+    else 
+    {
       var w = window.innerWidth;
       var h = window.innerHeight;
       console.log('PC端保持比例: w:' + w + ' h:'+h);
@@ -170,9 +154,8 @@
     // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
   }).then((unityInstance) => {
     logMessage('splashdiv: 初始调整尺寸' + navigator.userAgent);
-    setTimeout(JumpScene, 100);
-    setTimeout(resizeCanvas, 1000);
     _unityInstance = unityInstance;
+    setTimeout(JumpScene, 100);
   }).catch((message) => {
     alert(message);
   });
@@ -180,10 +163,19 @@
   function JumpScene() {
     // 日志消息
     logMessage('JumpScene: 初始调整尺寸' + navigator.userAgent);
+    _loadFinish = true;
     document.getElementById('splash-screen').style.display = 'none';
     document.getElementById('loadingText').style.display = 'none';
     document.getElementById('loading').style.display = 'none';
-    _loadFinish = true;
+
+    // Android GPU恢复技巧
+    if (/Android/i.test(navigator.userAgent)) {
+      setTimeout(function() {
+        logMessage('Android GPU恢复技巧');
+        _unityInstance.SetFullscreen(0);
+        _unityInstance.SetFullscreen(1);
+      }, 1000);
+    }
   }
 
   // ----- ↓↓↓ 打开/关闭新页面 ↓↓↓ -----
@@ -216,9 +208,8 @@
   function CloseUrl_Window() {
     var otherDiv = document.getElementById('urlWindow');
     otherDiv.style.display = "none";
-    document.getElementById("iframe").src =
-            ""
-  };
+    document.getElementById("iframe").src = ""
+  }
 
   function AppCloseGame(isBrowser) {
     if (isBrowser == 0 || isBrowser == -1) {
@@ -243,7 +234,7 @@
 
   function LoadingProgress(progress, isBrowser){
     if (isBrowser == 0 || isBrowser == -1){
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      if (isMobile) {
         location.href="boxh5game://loading?progress=" + progress;
       }
     }else if (isBrowser == 1){
