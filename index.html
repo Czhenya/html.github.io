@@ -258,13 +258,13 @@
     return /Failed to fetch|NetworkError|ERR_INTERNET_DISCONNECTED|TypeError: Failed to fetch/i.test(errorMessage);
   }
 
-  // 自定义错误显示函数
+   // 自定义错误显示函数 - 白色弹窗样式
   function showNetworkError(message) {
     // 隐藏所有游戏相关元素
-    document.getElementById('unity-canvas').style.display = 'none';
-    document.getElementById('splash-screen').style.display = 'none';
-    document.getElementById('loadingText').style.display = 'none';
-    document.getElementById('loading').style.display = 'none';
+    // document.getElementById('unity-canvas').style.display = 'none';
+    // document.getElementById('splash-screen').style.display = 'none';
+    // document.getElementById('loadingText').style.display = 'none';
+    // document.getElementById('loading').style.display = 'none';
     
     // 创建或显示错误容器
     let errorContainer = document.getElementById('network-error-container');
@@ -277,60 +277,72 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.85);
-        color: white;
+        background: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
         display: flex;
-        flex-direction: column;
         justify-content: center;
         align-items: center;
         z-index: 10000;
-        padding: 20px;
-        box-sizing: border-box;
       `;
       
       const errorContent = document.createElement('div');
       errorContent.style.cssText = `
-        background: #1e1e1e;
-        padding: 30px;
-        border-radius: 10px;
-        max-width: 600px;
-        width: 90%;
+        background: white;
+        border-radius: 12px;
+        width: 280px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         text-align: center;
       `;
       
-      const title = document.createElement('h2');
+      const title = document.createElement('div');
       title.textContent = '网络连接问题';
-      title.style.marginTop = '0';
+      title.style.cssText = `
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 10px;
+      `;
       
-      const msg = document.createElement('p');
+      const msg = document.createElement('div');
       msg.textContent = message || '网络连接失败，请检查您的网络连接后重试';
-      msg.style.margin = '20px 0';
+      msg.style.cssText = `
+        font-size: 15px;
+        color: #666;
+        margin-bottom: 20px;
+        line-height: 1.4;
+      `;
+      
+      const buttonContainer = document.createElement('div');
+      buttonContainer.style.cssText = `
+        display: flex;
+        justify-content: center;
+      `;
       
       const retryButton = document.createElement('button');
-      retryButton.textContent = '重新加载游戏';
+      retryButton.textContent = '重新加载';
       retryButton.style.cssText = `
-        padding: 12px 24px;
-        background: #4CAF50;
+        padding: 8px 20px;
+        background: #007AFF;
         color: white;
         border: none;
-        border-radius: 4px;
+        border-radius: 8px;
         font-size: 16px;
         cursor: pointer;
-        margin-top: 10px;
       `;
       retryButton.onclick = function() {
         window.location.reload();
       };
       
+      buttonContainer.appendChild(retryButton);
       errorContent.appendChild(title);
       errorContent.appendChild(msg);
-      errorContent.appendChild(retryButton);
+      errorContent.appendChild(buttonContainer);
       errorContainer.appendChild(errorContent);
       document.body.appendChild(errorContainer);
     } else {
       errorContainer.style.display = 'flex';
       // 更新错误消息
-      const msgElement = errorContainer.querySelector('p');
+      const msgElement = errorContainer.querySelector('div:nth-child(2)');
       if (msgElement) {
         msgElement.textContent = message || '网络连接失败，请检查您的网络连接后重试';
       }
