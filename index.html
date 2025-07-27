@@ -274,7 +274,7 @@
   window.addEventListener('error', event => {
     if (event.error && event.error.message.includes('Failed to fetch')) {
       event.preventDefault();
-      showError('全局捕获: 网络请求失败');
+      showError('网络请求失败');
     }
   });
 
@@ -282,7 +282,7 @@
   window.addEventListener('unhandledrejection', event => {
     if (event.reason && event.reason.message.includes('Failed to fetch')) {
       event.preventDefault();
-      showError('异步操作失败: 网络中断');
+      showError(' 网络中断');
     }
   });
 
