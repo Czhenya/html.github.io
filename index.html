@@ -274,7 +274,7 @@
   window.addEventListener('error', event => {
     if (event.error && event.error.message.includes('Failed to fetch')) {
       event.preventDefault();
-      showError('网络请求失败111');
+      showError('网络请求失败1');
     }
   });
 
@@ -282,7 +282,7 @@
   window.addEventListener('unhandledrejection', event => {
     if (event.reason && event.reason.message.includes('Failed to fetch')) {
       event.preventDefault();
-      showError(' 网络中断222');
+      showError(' 网络中断2');
     }
   });
 
@@ -294,6 +294,20 @@
     alert(msg); // 或替换为自定义UI
     // 示例: 显示一个友好的提示框并允许重试
   }
+
+    // 在UnityLoader加载前覆盖关键方法
+    const originalInstantiateAsync = UnityLoader.instantiateAsync;
+    
+    UnityLoader.instantiateAsync = function(container, source, onProgress) {
+      return originalInstantiateAsync(container, source, onProgress).catch(error => {
+        if (isNetworkError(error)) {
+          showError("网络连接已断开，请检查后重试");
+          // 返回一个永不resolved的Promise阻止后续错误
+          return new Promise(() => {});
+        }
+        throw error; // 非网络错误继续抛出
+      });
+    };
   
  var unityInstance;
     
@@ -316,6 +330,14 @@
       if (isNetworkError(error)) {
         showError("游戏初始化失败，网络不可用");
       }
+    }
+
+    function isNetworkError(error) {
+      return error && (
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('NetworkError') ||
+        error.message.includes('ERR_INTERNET_DISCONNECTED')
+      );
     }
 
 </script>
