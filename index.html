@@ -294,7 +294,21 @@
     alert(msg); // 或替换为自定义UI
     // 示例: 显示一个友好的提示框并允许重试
   }
-
+  
+// 初始化Unity
+      var unityInstance = UnityLoader.instantiate(
+        "unityContainer",
+        "Build/WebGL.json",
+        {
+          onError: function(error) {
+            if (error.includes('Failed to fetch')) {
+              showError('Unity加载失败: 网络错误');
+              return true; // 抑制Unity默认弹窗
+            }
+            return false;
+          }
+        }
+      );
 
 </script>
 </body>
