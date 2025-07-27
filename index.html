@@ -319,7 +319,7 @@
       `;
       
       const retryButton = document.createElement('button');
-      retryButton.textContent = '重新加载';
+      retryButton.textContent = '重试';
       retryButton.style.cssText = `
         padding: 8px 20px;
         background: #007AFF;
@@ -384,7 +384,7 @@
       showNetworkError('游戏资源加载失败: 网络错误');
     } else {
       // 非网络错误保持原来的alert
-      alert(error.message || error);
+      showNetworkError(error.message || error);
     }
   });
 
