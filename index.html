@@ -274,7 +274,7 @@
   window.addEventListener('error', event => {
     if (event.error && event.error.message.includes('Failed to fetch')) {
       event.preventDefault();
-      showError('网络请求失败1111');
+      showError('网络请求失败11111');
     }
   });
 
@@ -282,7 +282,7 @@
   window.addEventListener('unhandledrejection', event => {
     if (event.reason && event.reason.message.includes('Failed to fetch')) {
       event.preventDefault();
-      showError(' 网络中断2222');
+      showError(' 网络中断22222');
     }
   });
 
@@ -314,7 +314,7 @@
     try {
       unityInstance = UnityLoader.instantiate(
         "unityContainer",
-        "UnityLoader.js",
+        "WebGL.loader.js",
         {
           onProgress: UnityProgress,
           onError: function(error) {
