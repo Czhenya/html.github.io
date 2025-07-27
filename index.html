@@ -295,20 +295,28 @@
     // 示例: 显示一个友好的提示框并允许重试
   }
   
-// 初始化Unity
-      var unityInstance = UnityLoader.instantiate(
+ var unityInstance;
+    
+    try {
+      unityInstance = UnityLoader.instantiate(
         "unityContainer",
         "Build/WebGL.json",
         {
+          onProgress: UnityProgress,
           onError: function(error) {
-            if (error.includes('Failed to fetch')) {
-              showError('Unity加载失败: 网络错误');
-              return true; // 抑制Unity默认弹窗
+            if (isNetworkError(error)) {
+              showFriendlyError("资源加载失败，请检查网络");
+              return true; // 阻止Unity默认弹窗
             }
             return false;
           }
         }
       );
+    } catch (error) {
+      if (isNetworkError(error)) {
+        showError("游戏初始化失败，网络不可用");
+      }
+    }
 
 </script>
 </body>
