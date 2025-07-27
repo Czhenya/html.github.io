@@ -86,6 +86,7 @@
   <iframe id="iframe" src="" style="width: 100%;height: 100%;border: none;outline:none"></iframe>
 </div>
 
+<div id="unityContainer" style="width: 100%; height: 100%"></div>
 <script src="WebGL.loader.js"></script>
 <script>
 
@@ -267,6 +268,33 @@
     //logDiv.innerText += message + '\n'; // 添加日志消息
     console.log(message); // 输出到控制台
   }
+
+  
+  // 全局错误捕获
+  window.addEventListener('error', event => {
+    if (event.error && event.error.message.includes('Failed to fetch')) {
+      event.preventDefault();
+      showError('全局捕获: 网络请求失败');
+    }
+  });
+
+  // Promise错误捕获
+  window.addEventListener('unhandledrejection', event => {
+    if (event.reason && event.reason.message.includes('Failed to fetch')) {
+      event.preventDefault();
+      showError('异步操作失败: 网络中断');
+    }
+  });
+
+  // 自定义错误处理
+  function showError(msg) {
+    const container = document.getElementById('unityContainer');
+    container.style.display = 'none';
+
+    alert(msg); // 或替换为自定义UI
+    // 示例: 显示一个友好的提示框并允许重试
+  }
+
 
 </script>
 </body>
