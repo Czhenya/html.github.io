@@ -261,10 +261,10 @@
    // 自定义错误显示函数 - 白色弹窗样式
   function showNetworkError(message) {
     // 隐藏所有游戏相关元素
-    // document.getElementById('unity-canvas').style.display = 'none';
-    // document.getElementById('splash-screen').style.display = 'none';
-    // document.getElementById('loadingText').style.display = 'none';
-    // document.getElementById('loading').style.display = 'none';
+    document.getElementById('unity-canvas').style.display = 'none';
+    document.getElementById('splash-screen').style.display = 'none';
+    document.getElementById('loadingText').style.display = 'none';
+    document.getElementById('loading').style.display = 'none';
     
     // 创建或显示错误容器
     let errorContainer = document.getElementById('network-error-container');
