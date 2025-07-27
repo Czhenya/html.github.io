@@ -142,25 +142,6 @@
     }
   }
 
-  var _loadFinish = false;
-  createUnityInstance(document.querySelector("#unity-canvas"), {
-    dataUrl: "WebGL.data.unityweb",
-    frameworkUrl: "WebGL.framework.js.unityweb",
-    codeUrl: "WebGL.wasm.unityweb",
-    streamingAssetsUrl: "StreamingAssets",
-    companyName: "DefaultCompany",
-    productName: "眼脑训练",
-    productVersion: "1.0",
-    // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
-    // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
-  }).then((unityInstance) => {
-    logMessage('splashdiv: 初始调整尺寸' + navigator.userAgent);
-    _unityInstance = unityInstance;
-    setTimeout(JumpScene, 100);
-  }).catch((message) => {
-    alert(message);
-  });
-
   function JumpScene() {
     // 日志消息
     logMessage('JumpScene: 初始调整尺寸' + navigator.userAgent);
@@ -270,75 +251,130 @@
   }
 
   
+  // 网络错误检测函数
+  function isNetworkError(error) {
+    if (!error) return false;
+    const errorMessage = error.message || error.toString();
+    return /Failed to fetch|NetworkError|ERR_INTERNET_DISCONNECTED|TypeError: Failed to fetch/i.test(errorMessage);
+  }
+
+  // 自定义错误显示函数
+  function showNetworkError(message) {
+    // 隐藏所有游戏相关元素
+    document.getElementById('unity-canvas').style.display = 'none';
+    document.getElementById('splash-screen').style.display = 'none';
+    document.getElementById('loadingText').style.display = 'none';
+    document.getElementById('loading').style.display = 'none';
+    
+    // 创建或显示错误容器
+    let errorContainer = document.getElementById('network-error-container');
+    if (!errorContainer) {
+      errorContainer = document.createElement('div');
+      errorContainer.id = 'network-error-container';
+      errorContainer.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        padding: 20px;
+        box-sizing: border-box;
+      `;
+      
+      const errorContent = document.createElement('div');
+      errorContent.style.cssText = `
+        background: #1e1e1e;
+        padding: 30px;
+        border-radius: 10px;
+        max-width: 600px;
+        width: 90%;
+        text-align: center;
+      `;
+      
+      const title = document.createElement('h2');
+      title.textContent = '网络连接问题';
+      title.style.marginTop = '0';
+      
+      const msg = document.createElement('p');
+      msg.textContent = message || '网络连接失败，请检查您的网络连接后重试';
+      msg.style.margin = '20px 0';
+      
+      const retryButton = document.createElement('button');
+      retryButton.textContent = '重新加载游戏';
+      retryButton.style.cssText = `
+        padding: 12px 24px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+      `;
+      retryButton.onclick = function() {
+        window.location.reload();
+      };
+      
+      errorContent.appendChild(title);
+      errorContent.appendChild(msg);
+      errorContent.appendChild(retryButton);
+      errorContainer.appendChild(errorContent);
+      document.body.appendChild(errorContainer);
+    } else {
+      errorContainer.style.display = 'flex';
+      // 更新错误消息
+      const msgElement = errorContainer.querySelector('p');
+      if (msgElement) {
+        msgElement.textContent = message || '网络连接失败，请检查您的网络连接后重试';
+      }
+    }
+  }
+
   // 全局错误捕获
   window.addEventListener('error', event => {
-    if (event.error && event.error.message.includes('Failed to fetch')) {
+    if (isNetworkError(event.error)) {
       event.preventDefault();
-      showError('网络请求失败11111');
+      showNetworkError('网络请求失败，请检查连接');
     }
   });
 
   // Promise错误捕获
   window.addEventListener('unhandledrejection', event => {
-    if (event.reason && event.reason.message.includes('Failed to fetch')) {
+    if (isNetworkError(event.reason)) {
       event.preventDefault();
-      showError(' 网络中断22222');
+      showNetworkError('网络中断，请重新连接');
     }
   });
 
-  // 自定义错误处理
-  function showError(msg) {
-    const container = document.getElementById('unityContainer');
-    container.style.display = 'none';
-
-    alert(msg); // 或替换为自定义UI
-    // 示例: 显示一个友好的提示框并允许重试
-  }
-
-    // 在UnityLoader加载前覆盖关键方法
-    const originalInstantiateAsync = UnityLoader.instantiateAsync;
-    
-    UnityLoader.instantiateAsync = function(container, source, onProgress) {
-      return originalInstantiateAsync(container, source, onProgress).catch(error => {
-        if (isNetworkError(error)) {
-          showError("网络连接已断开，请检查后重试");
-          // 返回一个永不resolved的Promise阻止后续错误
-          return new Promise(() => {});
-        }
-        throw error; // 非网络错误继续抛出
-      });
-    };
-  
- var unityInstance;
-    
-    try {
-      unityInstance = UnityLoader.instantiate(
-        "unityContainer",
-        "WebGL.loader.js",
-        {
-          onProgress: UnityProgress,
-          onError: function(error) {
-            if (isNetworkError(error)) {
-              showError("资源加载失败，请检查网络");
-              return true; // 阻止Unity默认弹窗
-            }
-            return false;
-          }
-        }
-      );
-    } catch (error) {
-      if (isNetworkError(error)) {
-        showError("游戏初始化失败，网络不可用");
-      }
+  // 初始化Unity时添加错误处理
+  var _loadFinish = false;
+  createUnityInstance(document.querySelector("#unity-canvas"), {
+    dataUrl: "WebGL.data.unityweb",
+    frameworkUrl: "WebGL.framework.js.unityweb",
+    codeUrl: "WebGL.wasm.unityweb",
+    streamingAssetsUrl: "StreamingAssets",
+    companyName: "DefaultCompany",
+    productName: "眼脑训练",
+    productVersion: "1.0",
+  }).then((unityInstance) => {
+    logMessage('splashdiv: 初始调整尺寸' + navigator.userAgent);
+    _unityInstance = unityInstance;
+    setTimeout(JumpScene, 100);
+  }).catch((error) => {
+    if (isNetworkError(error)) {
+      showNetworkError('游戏资源加载失败: 网络错误');
+    } else {
+      // 非网络错误保持原来的alert
+      alert(error.message || error);
     }
-
-    function isNetworkError(error) {
-      return error && (
-        error.message.includes('Failed to fetch') ||
-        error.message.includes('NetworkError') ||
-        error.message.includes('ERR_INTERNET_DISCONNECTED')
-      );
-    }
+  });
 
 </script>
 </body>
