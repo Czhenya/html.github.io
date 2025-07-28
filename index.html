@@ -39,15 +39,6 @@
       z-index: 9999; /* 确保它在最上层 */
     }
 
-    #loadingText {
-      margin-top: 20px; /* 加载文字距离LOGO的间距 */
-      font-size: 0px; /* 字体大小 */
-      color: rgba(36, 111, 185, 255); /* 设置文字颜色为红色 */
-      position:fixed;
-      display: none;
-      bottom: 10%;
-    }
-
     #loading img{
       animation: scaleAni 2s ease-in-out infinite; /* 添加动画效果 */
     }
@@ -63,6 +54,62 @@
         transform: scale(1);
       }
     }
+
+    /* 进度条容器 - 固定在底部 */
+    .progress-wrapper {
+      position: absolute;
+      bottom: 80px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #loadingText {
+      font-size: 18px;
+      color: rgba(36, 111, 185, 255);
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .progress-container {
+      width: 80%;
+      max-width: 400px;
+      height: 12px;
+      background: rgba(36, 111, 185, 0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00c9ff, #92fe9d);
+      border-radius: 10px;
+      transition: width 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #progress-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      animation: shimmer 1.5s infinite;
+    }
+
+    #progress-text {
+      color: white;
+      font-size: 16px;
+      margin-top: 12px;
+      font-weight: 500;
+    }
+
   </style>
 </head>
 
@@ -73,12 +120,25 @@
 </canvas> -->
 
 <div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;position:fixed; background: rgba(255, 255, 255, 255); display: flex; align-items: center; justify-content: center; z-index: 9999;">
-  <div id="loadingText">首次加载较慢请耐心等待</div>
+<!--  <div id="loadingText">首次加载较慢请耐心等待</div>-->
+  <!-- 进度条区域固定在底部 -->
+  <div class="progress-wrapper">
+    <div id="loadingText">首次加载较慢请耐心等待...</div>
+
+    <!-- 进度条 -->
+    <div class="progress-container">
+      <div id="progress-bar"></div>
+    </div>
+
+    <div id="progress-text">0%</div>
+    <div class="spinner"></div>
+  </div>
+  
   <div class="spinner"></div>
 </div>
 
 <div id="loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0); display: none; align-items: center; justify-content: center; z-index: 9999;">
-  <img src="loading.png" alt="Loading..." style="max-width: 98px; height: 98px;transform: translate(0%,-0%);position:fixed;"/>
+  <img src="TemplateData/loading.png" alt="Loading..." style="max-width: 98px; height: 98px;transform: translate(0%,-0%);position:fixed;"/>
   <div class="spinner"></div>
 </div>
 
@@ -87,9 +147,53 @@
 </div>
 
 <div id="unityContainer" style="width: 100%; height: 100%"></div>
-<script src="WebGL.loader.js"></script>
+<script src="Build/WebGL.loader.js"></script>
 <script>
 
+  // 进度条相关变量
+  let simulatedProgress = 0;
+  let progressInterval;
+  let isUnityLoaded = false;
+
+  // 更新进度条
+  function updateProgressBar(progress) {
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+
+    progress = Math.min(100, Math.max(0, progress));
+    progressBar.style.width = progress + '%';
+    progressText.textContent = Math.round(progress) + '%';
+  }
+
+  // 模拟进度
+  function simulateProgress() {
+    // 每100毫秒增加1%
+    progressInterval = setInterval(() => {
+      // 90%之前正常增加
+      if (simulatedProgress < 90) {
+        simulatedProgress += 1;
+        updateProgressBar(simulatedProgress);
+      }
+      // 90%后缓慢增加
+      else if (simulatedProgress < 95) {
+        simulatedProgress += 0.5;
+        updateProgressBar(simulatedProgress);
+      }
+      // 95%后非常缓慢增加
+      else if (simulatedProgress < 98) {
+        simulatedProgress += 0.2;
+        updateProgressBar(simulatedProgress);
+      }
+
+      // 如果Unity已经加载完成，但进度还没到100%，直接跳到100%
+      if (isUnityLoaded && simulatedProgress < 100) {
+        simulatedProgress = 100;
+        updateProgressBar(simulatedProgress);
+        clearInterval(progressInterval);
+      }
+    }, 100);
+  }
+  
   function ShowLoading() {
     if (_loadFinish) {
       return;
@@ -97,7 +201,10 @@
     document.getElementById('splash-screen').style.display = 'flex';
     document.getElementById('loadingText').style.display = 'flex';
     document.getElementById('loading').style.display = 'flex';
+    // 开始模拟进度
+    simulateProgress();
   }
+  
 
   setTimeout(ShowLoading, 10);
 
@@ -146,9 +253,19 @@
     // 日志消息
     logMessage('JumpScene: 初始调整尺寸' + navigator.userAgent);
     _loadFinish = true;
-    document.getElementById('splash-screen').style.display = 'none';
-    document.getElementById('loadingText').style.display = 'none';
-    document.getElementById('loading').style.display = 'none';
+
+    // 标记Unity已加载完成
+    isUnityLoaded = true;
+    // 将进度条设置为100%
+    updateProgressBar(100);
+
+    // 短暂延迟后隐藏启动画面
+    setTimeout(() => {
+      _loadFinish = true;
+      document.getElementById('splash-screen').style.display = 'none';
+      document.getElementById('loadingText').style.display = 'none';
+      document.getElementById('loading').style.display = 'none';
+    }, 200);
 
     // Android GPU恢复技巧
     if (/Android/i.test(navigator.userAgent)) {
