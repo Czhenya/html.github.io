@@ -514,7 +514,7 @@ function restoreState() {
   const state = JSON.parse(localStorage.getItem('appState'));
   if (state) window.scrollTo(0, state.scrollTop);
 }
-
+  
 document.addEventListener('visibilitychange', function() {
   if (document.hidden) {
     saveState();
