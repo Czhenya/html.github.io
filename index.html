@@ -501,29 +501,18 @@
     }
   });
   
-  // 保存当前状态
-function saveState() {
-  localStorage.setItem('appState', JSON.stringify({
-    timestamp: new Date().getTime(),
-    scrollTop: window.pageYOffset
-  }));
-}
-
-// 恢复状态
-function restoreState() {
-  const state = JSON.parse(localStorage.getItem('appState'));
-  if (state) window.scrollTo(0, state.scrollTop);
-}
-  
-document.addEventListener('visibilitychange', function() {
-  if (document.hidden) {
-    saveState();
-    // 暂停所有定时器/动画等
-  } else {
-    restoreState();
-    // 恢复所有逻辑
-  }
-});
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden') {
+      // 标签页变为不可见，可能被切换到后台
+      console.log('Tab is now hidden');
+      // 在这里执行你想要在用户离开页面时执行的操作
+    } else if (document.visibilityState === 'visible') {
+      // 标签页变为可见，用户可能返回
+      console.log('Tab is now visible');
+      // 在这里执行你想要在用户返回页面时执行的操作
+      _unityInstance.SendMessage("Sound","ResPlayBGM");
+    }
+  });
 
 </script>
 </body>
