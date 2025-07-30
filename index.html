@@ -500,7 +500,8 @@
       showNetworkError(error.message || error);
     }
   });
-// 保存当前状态
+  
+  // 保存当前状态
 function saveState() {
   localStorage.setItem('appState', JSON.stringify({
     timestamp: new Date().getTime(),
@@ -522,7 +523,6 @@ document.addEventListener('visibilitychange', function() {
     restoreState();
     // 恢复所有逻辑
   }
-});
 });
 
 </script>
