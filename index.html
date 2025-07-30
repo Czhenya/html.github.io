@@ -509,6 +509,7 @@
     } else if (document.visibilityState === 'visible') {
       // 标签页变为可见，用户可能返回
       console.log('Tab is now visible');
+      showNetworkError('Tab is now visible');
       // 在这里执行你想要在用户返回页面时执行的操作
       _unityInstance.SendMessage("Sound","ResPlayBGM");
     }
